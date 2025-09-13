@@ -24,30 +24,27 @@ function findTestsAndMapAC(): { testTitle: string; file: string; acIds: string[]
   if (!exists(root)) return []
   const files = readdirSync(root).filter(f => f.endsWith('.ts'))
   const entries: { testTitle: string; file: string; acIds: string[] }[] = []
-  const titleRe = /test\(\s*(["'`])([^\1]+?)\1/gs
+  // Capture test title quoted by ', ", or ` without using backref in a char class
+  const titleRe = /test\(\s*(["'`])([^"'`]+)\1/gs
   for (const f of files) {
     const p = join(root, f)
     const src = read(p)
     let m: RegExpExecArray | null
     while ((m = titleRe.exec(src))) {
       const title = m[2]
-      const ac = Array.from(new Set((title.match(/TPA-\d{3}/g) || [])
-        .concat(title.match(/\[AC: *(TPA-\d{3})\]/g)?.map(s => s.replace(/.*\[AC: *(TPA-\d{3})\].*/, '$1')) || [])))
+      const ids1 = (title.match(/TPA-\d{3}/g) ?? []) as string[]
+      const ids2 = ((title.match(/\[AC:\s*(TPA-\d{3})\]/g) ?? []) as string[])
+        .map((s) => s.replace(/.*\[AC:\s*(TPA-\d{3})\].*/, '$1'))
+      const acRaw: string[] = [...ids1, ...ids2]
+      const ac = Array.from(new Set<string>(acRaw))
       entries.push({ testTitle: title, file: p, acIds: ac })
     }
   }
   return entries
 }
 
-async function runE2EJson(): Promise<null | any> {
-  try {
-    const { stdout } = await exec('npx playwright test -c config/playwright.config.ts --reporter=json', { maxBuffer: 20 * 1024 * 1024 })
-    return JSON.parse(stdout)
-  } catch (e: any) {
-    // JSON reporterが出力しなかった/壊れている等
-    return null
-  }
-}
+// Local Playwright CLI execution is disabled in this repository.
+async function runE2EJson(): Promise<null> { return null }
 
 function summarizeJson(json: any) {
   if (!json) return { total: 0, passed: 0, failed: 0, byTitle: new Map<string, boolean>() }
@@ -68,7 +65,7 @@ function summarizeJson(json: any) {
 }
 
 async function main() {
-  const run = process.argv.includes('--run')
+  const run = false // '--run' mode is disabled (MCP orchestrator only)
   const checks: Check[] = []
 
   // PO
@@ -94,24 +91,7 @@ async function main() {
   checks.push({ area: 'Dev: 起動/テスト手順', ok: /## 起動/.test(read('README.md')) && /## E2E テスト/.test(read('README.md')), info: 'README.md' })
 
   let runSummary: ReturnType<typeof summarizeJson> | null = null
-  if (run) {
-    const json = await runE2EJson()
-    runSummary = summarizeJson(json)
-    const passRate = runSummary.total ? Math.round((runSummary.passed / runSummary.total) * 100) : 0
-    checks.push({ area: 'QA: E2E 実行', ok: runSummary.failed === 0, info: `passed ${runSummary.passed}/${runSummary.total} (${passRate}%)` })
-
-    // AC単位のGreen判定
-    if (acIds.length) {
-      let greenAC = 0
-      for (const id of acIds) {
-        // idを含むor [AC:id] を含むテストが1件でもpass
-        const ok = Array.from(runSummary.byTitle.entries()).some(([title, ok]) => ok && (title.includes(id) || title.includes(`[AC:${id}]`)))
-        if (ok) greenAC++
-      }
-      const ratio = Math.round((greenAC / acIds.length) * 100)
-      checks.push({ area: 'QA: AC Green率', ok: greenAC === acIds.length, info: `${greenAC}/${acIds.length} (${ratio}%)` })
-    }
-  }
+  // E2E run is handled by the QA orchestrator; no local execution here.
 
   // 出力
   const mark = (ok: boolean) => ok ? '✔' : '✖'
@@ -129,4 +109,3 @@ async function main() {
 }
 
 main().catch((e) => { console.error(e); process.exit(1) })
-

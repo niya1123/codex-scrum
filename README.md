@@ -51,16 +51,12 @@ npm install
 npm run dev
 ```
 
-## E2E テスト
+## E2E（MCP-Playwright）
 
-- MCP 環境（Codex/MCP サーバー）では、MCP サーバー提供の Playwright（MCP-Playwright）を優先使用します。ブラウザインストールは不要です。
-- ローカル実行時のみ以下を使用してください。
+- 本リポはローカルの Playwright CLI を使用しません。E2E は Orchestrator の QA ステージ経由（MCP-Playwright）でのみ実行します。
+- 実行:
 ```
-# 初回のみ（ローカルでブラウザ未インストールの場合）
-npx playwright install
-
-# E2E 実行（内部で build → start → テスト）
-npm run test:e2e
+QA_REQUIRE_MCP=1 npm run orchestrate:qa
 ```
 
 出力先（Playwright）
@@ -68,6 +64,8 @@ npm run test:e2e
 - テスト結果: out/test-results/
 - レポート: out/playwright-report/
 ```
+
+安定運用や運用ルールは `docs/qa-green.md:1` を参照してください。
 
 ## 入力バリデーション（FE/BE共通）
 - 必須: 行き先・開始日・終了日は未入力不可

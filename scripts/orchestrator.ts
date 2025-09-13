@@ -355,7 +355,9 @@ async function main() {
       console.warn(`WARN: failed to write runner log: ${(e as Error).message}`);
     }
     if (!process.env.PROGRESS_ONLY) console.log(`QA#${i} runner=${runner}`);
-    if (should("qa") && isQaGreen(qaLast)) {
+    // Enforce MCP runner if required
+    const requireMcp = process.env.QA_REQUIRE_MCP === '1' || process.env.QA_REQUIRE_MCP === 'true' || !!process.env.CI
+    if (should("qa") && isQaGreen(qaLast) && (!requireMcp || runner === 'mcp')) {
       console.log("\n✅ QA GREEN → 受け入れ完了");
       if (should("docs")) {
         logSection("6) Docs: ドキュメント生成");
@@ -368,6 +370,10 @@ async function main() {
       }
       console.log(`\n完了: 成果物/ログは '${OUT_DIR}/' を参照してください。`);
       return;
+    }
+
+    if (should("qa") && isQaGreen(qaLast) && requireMcp && runner !== 'mcp') {
+      console.warn("\n⚠️  QA は GREEN でしたが runner!='mcp' のため不合格扱いにします (QA_REQUIRE_MCP 有効)");
     }
 
     if (should("qa")) {
