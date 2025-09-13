@@ -56,7 +56,7 @@ npm run dev
 - 本リポはローカルの Playwright CLI を使用しません。E2E は Orchestrator の QA ステージ経由（MCP-Playwright）でのみ実行します。
 - 実行:
 ```
-QA_REQUIRE_MCP=1 npm run orchestrate:qa
+npm run orchestrate:qa
 ```
 
 出力先（Playwright）

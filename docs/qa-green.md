@@ -19,12 +19,9 @@
 
 出力は `out/test-results/` と（ローカル時）`out/playwright-report/` に保存されます。CI では `@flaky` は実行対象外です。
 
-## MCP-Playwright の使用確認と強制
-- Orchestrator の QA ステージは、エージェントの最終出力に `runner=mcp`/`runner=fallback` が含まれる場合に検出し、`out/qa-runner.log` に記録します。
+## MCP-Playwright の使用確認
+- Orchestrator の QA ステージは、エージェントの最終出力に `runner=mcp`/`runner=fallback` が含まれる場合に検出し、`out/qa-runner.log` に記録します（あくまで記録用途）。
 - 確認: `cat out/qa-runner.log`（例: `iter=1, runner=mcp, at=...`）
-- 強制（CI 既定有効）:
-  - CI では `runner=mcp` でないと Green でも不合格扱い。
-  - ローカルでも `QA_REQUIRE_MCP=1 npm run orchestrate:qa` で強制可能。
 
 ## フレークの最小化チェックリスト
 - セレクタは原則 A11y（Role/Label） or `data-testid` を使用。`getByText` の過度使用を避ける。

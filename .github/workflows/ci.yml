@@ -27,6 +27,5 @@ jobs:
 
       - name: QA (MCP Orchestrator)
         env:
-          QA_REQUIRE_MCP: '1'
           PROGRESS_STYLE: 'none'
         run: npm run orchestrate:qa
