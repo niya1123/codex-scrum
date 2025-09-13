@@ -1,0 +1,39 @@
+{
+  "name": "travel-planner-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.17 <=22"
+  },
+  "scripts": {
+    "dev": "next dev -p 3000",
+    "build": "next build",
+    "start": "next start -p 3000",
+    "pretest:e2e": "npm run build",
+    "test:e2e": "playwright test -c config/playwright.config.ts",
+    "format": "prettier --check .",
+  "format:write": "prettier --write .",
+  "orchestrate": "tsx scripts/orchestrator.ts",
+  "orchestrate:from": "tsx scripts/orchestrator.ts --from=$FROM",
+  "orchestrate:po": "tsx scripts/orchestrator.ts --from=po",
+  "orchestrate:architect": "tsx scripts/orchestrator.ts --from=architect",
+  "orchestrate:planner": "tsx scripts/orchestrator.ts --from=planner",
+  "orchestrate:dev": "tsx scripts/orchestrator.ts --from=dev",
+  "orchestrate:qa": "tsx scripts/orchestrator.ts --from=qa",
+  "orchestrate:docs": "tsx scripts/orchestrator.ts --from=docs"
+  },
+  "dependencies": {
+    "next": "^14.2.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.45.0",
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.46",
+    "prettier": "^3.3.3",
+  "typescript": "^5.4.5",
+  "tsx": "^4.15.1"
+  }
+}

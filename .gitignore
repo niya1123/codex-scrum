@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+.env
+playwright-report
+test-results
+coverage
+.DS_Store
+server.log
+server.pid
+test-run.log
