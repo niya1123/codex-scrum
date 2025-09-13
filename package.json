@@ -10,12 +10,10 @@
     "dev": "next dev -p 3000",
     "build": "next build",
     "start": "next start -p 3000",
-    "pretest:e2e": "npm run build",
-    "test:e2e": "playwright test -c config/playwright.config.ts",
+    
     "format": "prettier --check .",
   "format:write": "prettier --write .",
   "sm:eval": "tsx scripts/sm-evaluate.ts",
-  "sm:eval:run": "tsx scripts/sm-evaluate.ts --run",
   "orchestrate": "tsx scripts/orchestrator.ts",
   "orchestrate:from": "tsx scripts/orchestrator.ts --from=$FROM",
   "orchestrate:po": "tsx scripts/orchestrator.ts --from=po",
@@ -31,7 +29,6 @@
     "react-dom": "^18.2.0"
   },
   "devDependencies": {
-    "@playwright/test": "^1.45.0",
     "@types/node": "^20.11.0",
     "@types/react": "^18.2.46",
     "prettier": "^3.3.3",

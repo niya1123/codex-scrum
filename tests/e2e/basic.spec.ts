@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test'
 
-test('[AC:TPA-003] ホーム画面のフォームに入力し、APIが応答する', async ({ page }) => {
+test('[AC:TPA-003] ホーム画面のフォームに入力し、APIが応答する @smoke', async ({ page }) => {
   await page.goto('/')
   await expect(page.getByRole('heading', { name: '旅程プランナー（MVP）' })).toBeVisible()
 

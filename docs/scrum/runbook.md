@@ -39,7 +39,7 @@
 
 ## 実行コマンド（このリポ）
 - ローカル起動: `npm install && npm run dev`
-- E2E（ローカル）: `npx playwright install && npm run test:e2e`
+- E2E（MCP・推奨）: `npm run orchestrate:qa`
 - SMスコアカード: `npm run sm:eval`（静的）/ `npm run sm:eval:run`（E2E込み）
 - Orchestrator（任意）: `npm run orchestrate[:po|:architect|:planner|:dev|:qa|:docs]`
 
@@ -53,5 +53,4 @@
 2) Planner: 依存をクリティカルパスに並べる（001→002→004）
 3) QA: 3件のE2E雛形を `tests/e2e/TPA-xxx_*.spec.ts` に配置（`test.skip`）
 4) Dev: 001→002→004を最小実装。テスト名に `[AC:TPA-***]` を付与
-5) SM: `npm run sm:eval:run` でACカバレッジ/Green率を確認→レビューへ
-
+5) SM: `npm run sm:eval` でACカバレッジ（静的）を確認→レビューへ

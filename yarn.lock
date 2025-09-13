@@ -17,7 +17,7 @@
   resolved "https://registry.npmjs.org/@next/swc-darwin-arm64/-/swc-darwin-arm64-14.2.32.tgz"
   integrity sha512-osHXveM70zC+ilfuFa/2W6a1XQxJTvEhzEycnjUaVE8kpUS09lDpiDDX2YLdyFCzoUbvbo5r0X1Kp4MllIOShw==
 
-"@playwright/test@^1.41.2", "@playwright/test@^1.45.0":
+"@playwright/test@^1.41.2":
   version "1.55.0"
   resolved "https://registry.npmjs.org/@playwright/test/-/test-1.55.0.tgz"
   integrity sha512-04IXzPwHrW69XusN/SIdDdKZBzMfOT9UNT/YiJit/xpy2VuAoB8NHc8Aplb96zsWDddLnbkPL3TsmrS04ZU2xQ==

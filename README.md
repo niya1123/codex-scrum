@@ -51,16 +51,12 @@ npm install
 npm run dev
 ```
 
-## E2E テスト
+## E2E（MCP-Playwright）
 
-- MCP 環境（Codex/MCP サーバー）では、MCP サーバー提供の Playwright（MCP-Playwright）を優先使用します。ブラウザインストールは不要です。
-- ローカル実行時のみ以下を使用してください。
+- 本リポはローカルの Playwright CLI を使用しません。E2E は Orchestrator の QA ステージ経由（MCP-Playwright）でのみ実行します。
+- 実行:
 ```
-# 初回のみ（ローカルでブラウザ未インストールの場合）
-npx playwright install
-
-# E2E 実行（内部で build → start → テスト）
-npm run test:e2e
+npm run orchestrate:qa
 ```
 
 出力先（Playwright）
@@ -68,6 +64,8 @@ npm run test:e2e
 - テスト結果: out/test-results/
 - レポート: out/playwright-report/
 ```
+
+安定運用や運用ルールは `docs/qa-green.md:1` を参照してください。
 
 ## 入力バリデーション（FE/BE共通）
 - 必須: 行き先・開始日・終了日は未入力不可
@@ -117,6 +115,20 @@ rm -rf node_modules .next playwright-report test-results
 - 進捗表示: `PROGRESS_STYLE=spinner`（bar|spinner|none）
 - QAステージ: MCPサーバーのPlaywright（MCP-Playwright）を強制使用。最終サマリーに `runner=mcp` を含まない場合は不合格扱い（フォールバック runner は許容しない）。
 
+### RED 調査 → 再分解（自動）
+- QA が RED の場合、次イテレーションへ進む前に Investigator ステージが実行され、調査記録を `out/investigation-<iter>.yml` に保存します。
+- Planner の再分解には、`backlog.yml` に加えて以下を自動で入力します。
+  - 直近 QA 出力（`out/qa-<iter>.txt`）
+  - 調査記録（`out/investigation-<iter>.yml` があれば）
+- 環境変数でオン/オフ:
+  - 有効（既定）: `ENABLE_RED_INVESTIGATION=1`
+  - 無効: `ENABLE_RED_INVESTIGATION=0`
+
+- 自動Dev修正と再QA（新規既定）
+  - QA が RED → 再分解した場合、同一イテレーション内で `Dev-FE/Dev-BE` を再実行し、その後 QA を自動再実行します（GREEN になれば即受け入れ）。
+  - フラグ: `AUTO_DEV_AFTER_REPLAN=1`（既定オン）。無効化する場合は `AUTO_DEV_AFTER_REPLAN=0`。
+  - `PARALLEL_DEVS` が `0` の場合は実装再実行をスキップします。
+
 ### トラブルシュート
 
 - QA ステージで `STALL ... → SIGKILL` し、`Unexpected error: codex exited with code null` と出る
@@ -129,4 +141,5 @@ rm -rf node_modules .next playwright-report test-results
 
 ### 生成物とログの場所
 - Orchestrator成果物/ログ: `out/`（JSONL/最終出力）
+- 調査記録（RED 時）: `out/investigation-<iter>.yml`
 - サーバ/テスト等のログ: `out/logs/`

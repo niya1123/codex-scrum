@@ -1,0 +1,77 @@
+{
+  "destination": "Tokyo",
+  "start_date": "2025-10-01",
+  "end_date": "2025-10-03",
+  "source": "fallback",
+  "days": [
+    {
+      "date": "2025-10-01",
+      "suggestions": [
+        {
+          "id": "tokyo-2025-10-01-morning",
+          "time_slot": "morning",
+          "title": "Asakusa morning stroll",
+          "description": "Visit Senso-ji and Nakamise for a gentle start."
+        },
+        {
+          "id": "tokyo-2025-10-01-afternoon",
+          "time_slot": "afternoon",
+          "title": "Ueno museum time",
+          "description": "Explore Ueno Park museums and relax at Shinobazu Pond."
+        },
+        {
+          "id": "tokyo-2025-10-01-evening",
+          "time_slot": "evening",
+          "title": "Shibuya crossing lights",
+          "description": "Experience the scramble crossing and nearby eateries."
+        }
+      ]
+    },
+    {
+      "date": "2025-10-02",
+      "suggestions": [
+        {
+          "id": "tokyo-2025-10-02-morning",
+          "time_slot": "morning",
+          "title": "Meiji Shrine walk",
+          "description": "Calm forest path and shrine visit near Harajuku."
+        },
+        {
+          "id": "tokyo-2025-10-02-afternoon",
+          "time_slot": "afternoon",
+          "title": "Harajuku & Omotesando",
+          "description": "Stroll Takeshita Street and Omotesando cafés."
+        },
+        {
+          "id": "tokyo-2025-10-02-evening",
+          "time_slot": "evening",
+          "title": "Shinjuku city views",
+          "description": "See night views; consider Tokyo Metropolitan Building."
+        }
+      ]
+    },
+    {
+      "date": "2025-10-03",
+      "suggestions": [
+        {
+          "id": "tokyo-2025-10-03-morning",
+          "time_slot": "morning",
+          "title": "Tsukiji outer market",
+          "description": "Taste fresh bites and morning snacks."
+        },
+        {
+          "id": "tokyo-2025-10-03-afternoon",
+          "time_slot": "afternoon",
+          "title": "Odaiba bayfront",
+          "description": "Seaside walk and teamLab option."
+        },
+        {
+          "id": "tokyo-2025-10-03-evening",
+          "time_slot": "evening",
+          "title": "Tokyo Tower",
+          "description": "Classic skyline and evening glow."
+        }
+      ]
+    }
+  ]
+}

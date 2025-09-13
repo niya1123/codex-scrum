@@ -8,7 +8,9 @@ const sh = promisify(exec);
 const OUT_DIR = "out";
 const PROMPTS_DIR = "prompts";
 const MAX_ITERS = Number(process.env.MAX_ITERS || 3);
+const ENABLE_RED_INVESTIGATION = String(process.env.ENABLE_RED_INVESTIGATION || "1") !== "0";
 const PARALLEL_DEVS = Number(process.env.PARALLEL_DEVS || 2); // 2 = FE/BE 並列
+const AUTO_DEV_AFTER_REPLAN = String(process.env.AUTO_DEV_AFTER_REPLAN || "1") !== "0"; // RED時: 再分解→Dev→QA を自動実行
 const PROGRESS_STYLE = process.env.PROGRESS_STYLE || "bar"; // bar | spinner | none
 const PROGRESS_INTERVAL = Number(process.env.PROGRESS_INTERVAL || 120); // ms
 
@@ -355,6 +357,7 @@ async function main() {
       console.warn(`WARN: failed to write runner log: ${(e as Error).message}`);
     }
     if (!process.env.PROGRESS_ONLY) console.log(`QA#${i} runner=${runner}`);
+    // Accept QA GREEN without env gating; MCP is the only supported path in this repo
     if (should("qa") && isQaGreen(qaLast)) {
       console.log("\n✅ QA GREEN → 受け入れ完了");
       if (should("docs")) {
@@ -370,11 +373,51 @@ async function main() {
       return;
     }
 
-    if (should("qa")) {
-      // レッド時は Planner に差し戻し → 再分解 → 次イテレーションへ
-      console.warn("\n⚠️  QA RED → Plannerに差し戻し (再分解)");
+  if (should("qa")) {
+      // レッド時は 調査(任意) → Planner に差し戻し → 次イテレーションへ
+      console.warn("\n⚠️  QA RED → 原因調査 → Plannerに差し戻し (再分解)");
+
+      // 5.1 調査フェーズ（ENABLE_RED_INVESTIGATION!=0 の場合）
+      // 目的: 失敗テスト/分類/理由/証跡をもとに、推定原因と担当を特定し、
+      //       次のPlannerに渡す調査記録 (YAML) を out/investigation-<i>.yml に保存。
+      const investigationPath = join(OUT_DIR, `investigation-${i}.yml`);
+      const devFeLog = join(OUT_DIR, `dev-fe-${i}.log`);
+      const devBeLog = join(OUT_DIR, `dev-be-${i}.log`);
+      if (ENABLE_RED_INVESTIGATION) {
+        const exists = existsSync(investigationPath);
+        if (!exists) {
+          await runCodex({
+            inputFiles: [
+              join(PROMPTS_DIR, "investigate.md"),
+              qaLastPath,
+              ...(existsSync(devFeLog) ? [devFeLog] : []),
+              ...(existsSync(devBeLog) ? [devBeLog] : []),
+            ],
+            lastMessageFile: `investigation-${i}.yml`,
+            jsonLogFile: `investigate-${i}.jsonl`,
+            stageLabel: `Investigate#${i}`,
+            // 調査は失敗しても続行（Plannerに直接差し戻す）
+            allowFailure: true,
+          });
+        } else if (!process.env.PROGRESS_ONLY) {
+          console.log(`調査記録を再利用: ${investigationPath}`);
+        }
+      } else if (!process.env.PROGRESS_ONLY) {
+        console.log("(ENABLE_RED_INVESTIGATION=0 により調査フェーズをスキップ)");
+      }
+
+      // 5.2 Planner 再分解（調査記録と直近QA結果も入力に含める）
+      const replanInputs = [
+        join(PROMPTS_DIR, "planner.md"),
+        join(OUT_DIR, "backlog.yml"),
+      ];
+      if (ENABLE_RED_INVESTIGATION && existsSync(investigationPath)) {
+        replanInputs.push(investigationPath);
+      }
+      if (existsSync(qaLastPath)) replanInputs.push(qaLastPath);
+
       await runCodex({
-        inputFiles: [join(PROMPTS_DIR, "planner.md"), join(OUT_DIR, "backlog.yml")],
+        inputFiles: replanInputs,
         lastMessageFile: `tasks-replan-${i}.yml`,
         jsonLogFile: `planner-replan-${i}.jsonl`,
         stageLabel: `Replan#${i}`,
@@ -382,6 +425,72 @@ async function main() {
       // 最新tasksに差し替え
       const latest = readFileSync(join(OUT_DIR, `tasks-replan-${i}.yml`), "utf8");
       writeFileSync(join(OUT_DIR, "tasks.yml"), latest);
+
+      // 5.3 再分解の内容を Dev に即時反映（開始ステージが qa の場合でも実行）
+      if (AUTO_DEV_AFTER_REPLAN && PARALLEL_DEVS > 0) {
+        logSection("5.3 Dev: 再分解タスクの適用 (RED後)");
+        const devJobs2: Promise<any>[] = [];
+        if (PARALLEL_DEVS >= 1) {
+          devJobs2.push(
+            runCodex({
+              inputFiles: [join(PROMPTS_DIR, "dev-fe.md"), join(OUT_DIR, "tasks.yml")],
+              lastMessageFile: `dev-fe-${i}-retry.log`,
+              jsonLogFile: `dev-fe-${i}-retry.jsonl`,
+              stageLabel: `Dev-FE#${i}-retry`,
+            })
+          );
+        }
+        if (PARALLEL_DEVS >= 2) {
+          devJobs2.push(
+            runCodex({
+              inputFiles: [join(PROMPTS_DIR, "dev-be.md"), join(OUT_DIR, "tasks.yml")],
+              lastMessageFile: `dev-be-${i}-retry.log`,
+              jsonLogFile: `dev-be-${i}-retry.jsonl`,
+              stageLabel: `Dev-BE#${i}-retry`,
+            })
+          );
+        }
+        if (devJobs2.length) await Promise.all(devJobs2);
+
+        // 5.4 QA を即時再実行（実装反映後）
+        logSection("5.4 QA: 再実行 (再分解+実装反映後)");
+        await runCodex({
+          inputFiles: [join(PROMPTS_DIR, "qa.md"), join(OUT_DIR, "tasks.yml")],
+          lastMessageFile: `qa-${i}-retry.txt`,
+          jsonLogFile: `qa-${i}-retry.jsonl`,
+          stageLabel: `QA#${i}-retry`,
+          allowFailure: true,
+        });
+
+        const qaRetryPath = join(OUT_DIR, `qa-${i}-retry.txt`);
+        const qaRetry = existsSync(qaRetryPath) ? readFileSync(qaRetryPath, "utf8") : "";
+        const runner2 = parseRunnerTag(qaRetry);
+        const runnerLog2 = join(OUT_DIR, "qa-runner.log");
+        const entry2 = `iter=${i}, retry=1, runner=${runner2}, at=${new Date().toISOString()}\n`;
+        try {
+          const prev2 = existsSync(runnerLog2) ? readFileSync(runnerLog2, "utf8") : "";
+          if (!prev2.split(/\r?\n/).some((l) => l.startsWith(`iter=${i}, retry=1`))) {
+            appendFileSync(runnerLog2, entry2, { encoding: "utf8" });
+          }
+        } catch (e) {
+          console.warn(`WARN: failed to write retry runner log: ${(e as Error).message}`);
+        }
+
+        if (isQaGreen(qaRetry)) {
+          console.log("\n✅ QA GREEN (after replan+dev) → 受け入れ完了");
+          if (should("docs")) {
+            logSection("6) Docs: ドキュメント生成");
+            await runCodex({
+              inputFiles: [join(PROMPTS_DIR, "docs.md"), join(OUT_DIR, "tasks.yml")],
+              lastMessageFile: `docs-${i}-retry.log`,
+              jsonLogFile: `docs-${i}-retry.jsonl`,
+              stageLabel: `Docs#${i}-retry`,
+            });
+          }
+          console.log(`\n完了: 成果物/ログは '${OUT_DIR}/' を参照してください。`);
+          return;
+        }
+      }
     } else if (should("docs")) {
       // QA を通さず docs を求めている場合 (非推奨) 一度だけ docs 生成して終了
       logSection("6) Docs: ドキュメント生成 (QAスキップ) ");
