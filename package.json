@@ -14,6 +14,8 @@
     "test:e2e": "playwright test -c config/playwright.config.ts",
     "format": "prettier --check .",
   "format:write": "prettier --write .",
+  "sm:eval": "tsx scripts/sm-evaluate.ts",
+  "sm:eval:run": "tsx scripts/sm-evaluate.ts --run",
   "orchestrate": "tsx scripts/orchestrator.ts",
   "orchestrate:from": "tsx scripts/orchestrator.ts --from=$FROM",
   "orchestrate:po": "tsx scripts/orchestrator.ts --from=po",

@@ -104,6 +104,12 @@ rm -rf node_modules .next playwright-report test-results
 ## 備考
 - 本リポジトリにバックログを同梱したい場合は `docs/backlog/travel-planner-mvp.md` の追加を提案可能です。
 
+## SM（スクラムマスター）向け
+- 評価の手順とチェックリスト: `docs/sm/evaluation.md:1`
+- 運用手順（Runbook）: `docs/scrum/runbook.md:1`
+- スコアカード（静的）: `npm run sm:eval`
+- スコアカード（E2E込み）: `npm run sm:eval:run`
+
 ## Orchestrator（自動化スクリプト）
 
 - 実行: `npm run orchestrate`

@@ -8,7 +8,7 @@ Tooling Policy:
 1. Playwright は MCP サーバー提供の Playwright（以降「MCP-Playwright」）を優先使用する。
 2. MCP-Playwright が利用不可/未提供の場合のみフォールバックとして `npx playwright test -c config/playwright.config.ts`（必要なら `--reporter=line`）を実行する。
 3. MCP-Playwright 使用時はブラウザインストール禁止。フォールバック時のみ、stderr に "Please run 'npx playwright install'" 等が出た場合 1 回だけ `npx playwright install` を実行する。
-4. サーバ起動は並列で立ち上げ待機: `npm run start` → stdout で `Ready` / `READY` / `started` を待ち、最大 40 秒。待機超過で即 Fail。
+4. サーバ起動ポリシー: `config/playwright.config.ts` に `webServer` がある場合は手動起動は禁止（Playwright に委譲）。`webServer` が無い場合のみ `npm run start -p ${PORT:-3000}` を起動し、stdout の `Ready` / `READY` / `started` を最大 40 秒待機。ポート使用中を検知したら新規起動せず既存を再利用（多重起動・kill 禁止）。
 5. テストファイルが存在しなければ最小テスト `tests/e2e/basic.spec.ts` を生成。
 
 Required Test Cases (最低限):
@@ -27,7 +27,7 @@ Failure Classification:
 - テストデータ/シナリオの不備 → Planner
 
 Process Outline:
-1. サーバ起動 (タイムアウト 40s) → 健康チェック `/api/plan` に最小POST (destination="Tokyo")
+1. サーバ起動: `config/playwright.config.ts` に `webServer` がある場合、起動は Playwright に委譲（手動起動はスキップ）。無い場合のみ `npm run start` を起動（タイムアウト 40s）。→ 健康チェック `/api/plan` に最小POST (destination="Tokyo")
 2. MCP-Playwright 利用可否を判定。
    - 可能: MCP-Playwright で T1〜T3 の手順を実施・検証し判定（スクショ/トレース取得が可能なら evidence に追加）。
    - 不可: テストファイル存在確認 or 生成 → `npx playwright test --reporter=line` 実行。

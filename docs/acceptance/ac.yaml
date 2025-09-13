@@ -1,0 +1,14 @@
+# 任意: AC（受け入れ基準）リストの元帳。
+# ここに記載がなければ、SMスコアカードは docs/backlog/* から TPA-*** を抽出して扱います。
+
+items:
+  # 例（Must）
+  - id: TPA-003
+    title: 日別の簡易旅程生成（各日3件）
+    priority: Must
+    evidence:
+      tests:
+        - "[AC:TPA-003] 3日入力→9件の結果が表示される"
+      docs:
+        - docs/samples/api/api_plan_ok.body.json
+

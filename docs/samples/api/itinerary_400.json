@@ -1,0 +1,9 @@
+{
+  "error": "VALIDATION_ERROR",
+  "reasons": [
+    { "field": "destination", "message": "行き先は必須です" },
+    { "field": "start_date", "message": "開始日は必須です" },
+    { "field": "end_date", "message": "終了日は必須です" }
+  ]
+}
+

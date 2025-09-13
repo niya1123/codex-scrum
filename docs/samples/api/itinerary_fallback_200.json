@@ -1,0 +1,14 @@
+{
+  "destination": "Tokyo",
+  "start_date": "2025-10-01",
+  "end_date": "2025-10-03",
+  "source": "fallback",
+  "days": [
+    { "date": "2025-10-01", "suggestions": [
+      { "id": "0-morning-1", "time_slot": "morning", "title": "Tokyoの朝の散歩", "description": "Tokyoで爽やかな朝を楽しむスポット。" },
+      { "id": "0-afternoon-2", "time_slot": "afternoon", "title": "Tokyoの美術館", "description": "Tokyoでゆったり午後を楽しむスポット。" },
+      { "id": "0-evening-3", "time_slot": "evening", "title": "Tokyoのサンセット", "description": "Tokyoで夜景を楽しむスポット。" }
+    ]}
+  ]
+}
+
