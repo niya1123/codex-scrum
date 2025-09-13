@@ -8,6 +8,7 @@ const sh = promisify(exec);
 const OUT_DIR = "out";
 const PROMPTS_DIR = "prompts";
 const MAX_ITERS = Number(process.env.MAX_ITERS || 3);
+const ENABLE_RED_INVESTIGATION = String(process.env.ENABLE_RED_INVESTIGATION || "1") !== "0";
 const PARALLEL_DEVS = Number(process.env.PARALLEL_DEVS || 2); // 2 = FE/BE 並列
 const PROGRESS_STYLE = process.env.PROGRESS_STYLE || "bar"; // bar | spinner | none
 const PROGRESS_INTERVAL = Number(process.env.PROGRESS_INTERVAL || 120); // ms
@@ -372,10 +373,50 @@ async function main() {
     }
 
     if (should("qa")) {
-      // レッド時は Planner に差し戻し → 再分解 → 次イテレーションへ
-      console.warn("\n⚠️  QA RED → Plannerに差し戻し (再分解)");
+      // レッド時は 調査(任意) → Planner に差し戻し → 次イテレーションへ
+      console.warn("\n⚠️  QA RED → 原因調査 → Plannerに差し戻し (再分解)");
+
+      // 5.1 調査フェーズ（ENABLE_RED_INVESTIGATION!=0 の場合）
+      // 目的: 失敗テスト/分類/理由/証跡をもとに、推定原因と担当を特定し、
+      //       次のPlannerに渡す調査記録 (YAML) を out/investigation-<i>.yml に保存。
+      const investigationPath = join(OUT_DIR, `investigation-${i}.yml`);
+      const devFeLog = join(OUT_DIR, `dev-fe-${i}.log`);
+      const devBeLog = join(OUT_DIR, `dev-be-${i}.log`);
+      if (ENABLE_RED_INVESTIGATION) {
+        const exists = existsSync(investigationPath);
+        if (!exists) {
+          await runCodex({
+            inputFiles: [
+              join(PROMPTS_DIR, "investigate.md"),
+              qaLastPath,
+              ...(existsSync(devFeLog) ? [devFeLog] : []),
+              ...(existsSync(devBeLog) ? [devBeLog] : []),
+            ],
+            lastMessageFile: `investigation-${i}.yml`,
+            jsonLogFile: `investigate-${i}.jsonl`,
+            stageLabel: `Investigate#${i}`,
+            // 調査は失敗しても続行（Plannerに直接差し戻す）
+            allowFailure: true,
+          });
+        } else if (!process.env.PROGRESS_ONLY) {
+          console.log(`調査記録を再利用: ${investigationPath}`);
+        }
+      } else if (!process.env.PROGRESS_ONLY) {
+        console.log("(ENABLE_RED_INVESTIGATION=0 により調査フェーズをスキップ)");
+      }
+
+      // 5.2 Planner 再分解（調査記録と直近QA結果も入力に含める）
+      const replanInputs = [
+        join(PROMPTS_DIR, "planner.md"),
+        join(OUT_DIR, "backlog.yml"),
+      ];
+      if (ENABLE_RED_INVESTIGATION && existsSync(investigationPath)) {
+        replanInputs.push(investigationPath);
+      }
+      if (existsSync(qaLastPath)) replanInputs.push(qaLastPath);
+
       await runCodex({
-        inputFiles: [join(PROMPTS_DIR, "planner.md"), join(OUT_DIR, "backlog.yml")],
+        inputFiles: replanInputs,
         lastMessageFile: `tasks-replan-${i}.yml`,
         jsonLogFile: `planner-replan-${i}.jsonl`,
         stageLabel: `Replan#${i}`,

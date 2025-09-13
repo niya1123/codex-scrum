@@ -115,6 +115,15 @@ rm -rf node_modules .next playwright-report test-results
 - 進捗表示: `PROGRESS_STYLE=spinner`（bar|spinner|none）
 - QAステージ: MCPサーバーのPlaywright（MCP-Playwright）を強制使用。最終サマリーに `runner=mcp` を含まない場合は不合格扱い（フォールバック runner は許容しない）。
 
+### RED 調査 → 再分解（自動）
+- QA が RED の場合、次イテレーションへ進む前に Investigator ステージが実行され、調査記録を `out/investigation-<iter>.yml` に保存します。
+- Planner の再分解には、`backlog.yml` に加えて以下を自動で入力します。
+  - 直近 QA 出力（`out/qa-<iter>.txt`）
+  - 調査記録（`out/investigation-<iter>.yml` があれば）
+- 環境変数でオン/オフ:
+  - 有効（既定）: `ENABLE_RED_INVESTIGATION=1`
+  - 無効: `ENABLE_RED_INVESTIGATION=0`
+
 ### トラブルシュート
 
 - QA ステージで `STALL ... → SIGKILL` し、`Unexpected error: codex exited with code null` と出る
@@ -127,4 +136,5 @@ rm -rf node_modules .next playwright-report test-results
 
 ### 生成物とログの場所
 - Orchestrator成果物/ログ: `out/`（JSONL/最終出力）
+- 調査記録（RED 時）: `out/investigation-<iter>.yml`
 - サーバ/テスト等のログ: `out/logs/`
