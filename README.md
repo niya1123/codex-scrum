@@ -124,6 +124,11 @@ rm -rf node_modules .next playwright-report test-results
   - 有効（既定）: `ENABLE_RED_INVESTIGATION=1`
   - 無効: `ENABLE_RED_INVESTIGATION=0`
 
+- 自動Dev修正と再QA（新規既定）
+  - QA が RED → 再分解した場合、同一イテレーション内で `Dev-FE/Dev-BE` を再実行し、その後 QA を自動再実行します（GREEN になれば即受け入れ）。
+  - フラグ: `AUTO_DEV_AFTER_REPLAN=1`（既定オン）。無効化する場合は `AUTO_DEV_AFTER_REPLAN=0`。
+  - `PARALLEL_DEVS` が `0` の場合は実装再実行をスキップします。
+
 ### トラブルシュート
 
 - QA ステージで `STALL ... → SIGKILL` し、`Unexpected error: codex exited with code null` と出る
