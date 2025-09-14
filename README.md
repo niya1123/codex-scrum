@@ -1,6 +1,6 @@
 # Travel Planner MVP
 
-最小構成の Next.js (App Router) プロジェクト。`/` に入力フォーム、`/api/plan` に仮応答API（最終名称 `/api/itinerary` へ統一予定。互換のエイリアス `/api/itinerary` を追加済み）。
+最小構成の Next.js (App Router) プロジェクト。`/` に入力フォーム、`/api/itinerary` に仮応答API（互換のエイリアスとして `/api/plan` も提供）。
 将来のLLMベース旅程生成に差し替え可能な拡張点（`src/planner`）を用意しています。
 
 ## 構成ポリシー
@@ -51,6 +51,26 @@ npm install
 npm run dev
 ```
 
+### ビルド/本番サーバ
+```
+# ビルド
+npm run build
+
+# 本番起動（http://localhost:3000）
+npm run start
+```
+
+### 手動確認（FE最小動作）
+- ブラウザで `http://localhost:3000` を開く
+- 見出し `旅程プランナー（MVP）` が表示される
+- 以下3つの入力とラベル/ARIAを確認
+  - `行き先`（text）/ `開始日`（text: YYYY-MM-DD）/ `終了日`（text: YYYY-MM-DD）
+- 未入力のまま各入力を blur すると `role=alert` のエラーメッセージが表示される
+- `開始日 > 終了日` にすると「終了日は開始日以降にしてください」が表示される
+- `行き先=Tokyo, 2025-10-01〜2025-10-03` を入力して「計画する」をクリック
+  - `result` ラベルのセクションに概要が表示され、合計件数が 9 件であることを確認
+
+
 ## E2E（MCP-Playwright）
 
 - 本リポはローカルの Playwright CLI を使用しません。E2E は Orchestrator の QA ステージ経由（MCP-Playwright）でのみ実行します。
@@ -74,8 +94,9 @@ npm run orchestrate:qa
 - エラー時: 送信ボタンは非活性。FEはAPI未呼び出し（TPA-002の前提）。
 
 ## API 仕様（仮）
-- エンドポイント: `POST /api/plan`
-  - 互換エイリアス: `POST /api/itinerary`（同一レスポンス）
+- エンドポイント: `POST /api/itinerary`
+  - 互換エイリアス: `POST /api/plan`（同一レスポンス）
+  - UI は `/api/itinerary` を呼び出します（TPA-004 準拠）。
 - Request: `application/json` `{ destination, start_date, end_date }`
 - Response (200): `{ destination, start_date, end_date, days: [{ date, suggestions:[{ id, time_slot, title, description }×3] }×N] }`
 - Response (400): `{ error: "VALIDATION_ERROR", reasons:[{ field, message }] }`
@@ -113,7 +134,7 @@ rm -rf node_modules .next playwright-report test-results
 - 実行: `npm run orchestrate`
 - ステージ指定で再開: `npm run orchestrate:qa` など
 - 進捗表示: `PROGRESS_STYLE=spinner`（bar|spinner|none）
-- QAステージ: MCPサーバーのPlaywright（MCP-Playwright）を強制使用。最終サマリーに `runner=mcp` を含まない場合は不合格扱い（フォールバック runner は許容しない）。
+- QAステージ: MCPサーバーのPlaywright（MCP-Playwright）を強制使用。最終JSONに `runner: "mcp"` を含まない場合は不合格扱い（フォールバック runner は許容しない）。
 
 ### RED 調査 → 再分解（自動）
 - QA が RED の場合、次イテレーションへ進む前に Investigator ステージが実行され、調査記録を `out/investigation-<iter>.yml` に保存します。

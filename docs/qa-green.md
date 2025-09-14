@@ -20,7 +20,8 @@
 出力は `out/test-results/` と（ローカル時）`out/playwright-report/` に保存されます。CI では `@flaky` は実行対象外です。
 
 ## MCP-Playwright の使用確認
-- Orchestrator の QA ステージは、エージェントの最終出力に `runner=mcp`/`runner=fallback` が含まれる場合に検出し、`out/qa-runner.log` に記録します（あくまで記録用途）。
+- Orchestrator の QA ステージは、エージェントの最終出力（JSON）に含まれる `runner: "mcp" | "fallback"` を検出し、`out/qa-runner.log` に記録します。
+- 既定では `runner !== "mcp"` の場合は不合格扱い（環境変数で無効化可: `QA_REQUIRE_MCP=0`）。
 - 確認: `cat out/qa-runner.log`（例: `iter=1, runner=mcp, at=...`）
 
 ## フレークの最小化チェックリスト

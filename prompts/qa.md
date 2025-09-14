@@ -5,7 +5,7 @@ Scope / AUT (Application Under Test):
 Next.js アプリ ( `npm run start` → ポート 3000 )。フォーム: 行き先(destionation) / 開始日(start_date) / 終了日(end_date) / 送信ボタン。API `/api/plan` は旅程 JSON を返す。
 
 Tooling Policy:
-1. Playwright は MCP サーバー提供の Playwright（以降「MCP-Playwright」）のみ使用する（ローカルCLIへのフォールバック禁止）。
+1. Playwright は MCP サーバー提供の Playwright（以降「MCP-Playwright」）のみ使用する（ローカルCLIへのフォールバック禁止）。必ず MCP を使用した場合は最終JSONに `runner: "mcp"` を含める（フォールバックの場合は `runner: "fallback"`）。
 2. ブラウザインストール等のローカル操作は禁止。
 3. サーバ起動ポリシー: `config/playwright.config.ts` に `webServer` がある場合は手動起動は禁止（Playwright に委譲）。`webServer` が無い場合のみ `npm run start -p ${PORT:-3000}` を起動し、stdout の `Ready` / `READY` / `started` を最大 40 秒待機。ポート使用中を検知したら新規起動せず既存を再利用（多重起動・kill 禁止）。
 4. テストファイルが存在しなければ最小テスト `tests/e2e/basic.spec.ts` を生成。
@@ -36,6 +36,7 @@ Output Requirements (最後のメッセージ ONLY / 追加の説明テキスト
 ```
 {
 	"status": "green" | "red",
+	"runner": "mcp" | "fallback",  // 使用した実行ランナー（必ず設定）。本リポジトリでは原則 mcp。
 	"summary": string,            // 簡潔 (<200 chars)
 	"passed": [string],           // 通過テストID (例: ["T1","T2"]) 
 	"failed": [                   // 失敗詳細 (空配列可)

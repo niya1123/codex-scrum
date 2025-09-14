@@ -1,0 +1,168 @@
+{
+  "destination": "Tokyo",
+  "start_date": "2025-10-01",
+  "end_date": "2025-10-03",
+  "days": [
+    {
+      "date": "2025-10-01",
+      "suggestions": [
+        {
+          "id": "0-morning-1",
+          "day_index": 0,
+          "time_slot": "morning",
+          "title": "Tokyoの朝の散歩",
+          "description": "Tokyoで爽やかな朝を楽しむスポット。"
+        },
+        {
+          "id": "0-afternoon-2",
+          "day_index": 0,
+          "time_slot": "afternoon",
+          "title": "Tokyoの街歩き",
+          "description": "Tokyoでゆったり午後を楽しむスポット。"
+        },
+        {
+          "id": "0-evening-3",
+          "day_index": 0,
+          "time_slot": "evening",
+          "title": "Tokyoのマーケット",
+          "description": "Tokyoで夜景を楽しむスポット。"
+        }
+      ]
+    },
+    {
+      "date": "2025-10-02",
+      "suggestions": [
+        {
+          "id": "1-morning-1",
+          "day_index": 1,
+          "time_slot": "morning",
+          "title": "Tokyoの朝の散歩",
+          "description": "Tokyoで爽やかな朝を楽しむスポット。"
+        },
+        {
+          "id": "1-afternoon-2",
+          "day_index": 1,
+          "time_slot": "afternoon",
+          "title": "Tokyoの街歩き",
+          "description": "Tokyoでゆったり午後を楽しむスポット。"
+        },
+        {
+          "id": "1-evening-3",
+          "day_index": 1,
+          "time_slot": "evening",
+          "title": "Tokyoのマーケット",
+          "description": "Tokyoで夜景を楽しむスポット。"
+        }
+      ]
+    },
+    {
+      "date": "2025-10-03",
+      "suggestions": [
+        {
+          "id": "2-morning-1",
+          "day_index": 2,
+          "time_slot": "morning",
+          "title": "Tokyoの朝の散歩",
+          "description": "Tokyoで爽やかな朝を楽しむスポット。"
+        },
+        {
+          "id": "2-afternoon-2",
+          "day_index": 2,
+          "time_slot": "afternoon",
+          "title": "Tokyoの街歩き",
+          "description": "Tokyoでゆったり午後を楽しむスポット。"
+        },
+        {
+          "id": "2-evening-3",
+          "day_index": 2,
+          "time_slot": "evening",
+          "title": "Tokyoのマーケット",
+          "description": "Tokyoで夜景を楽しむスポット。"
+        }
+      ]
+    }
+  ],
+  "startDate": "2025-10-01",
+  "endDate": "2025-10-03",
+  "plan": [
+    {
+      "date": "2025-10-01",
+      "suggestions": [
+        {
+          "id": "0-morning-1",
+          "dayIndex": 0,
+          "timeSlot": "morning",
+          "title": "Tokyoの朝の散歩",
+          "description": "Tokyoで爽やかな朝を楽しむスポット。"
+        },
+        {
+          "id": "0-afternoon-2",
+          "dayIndex": 0,
+          "timeSlot": "afternoon",
+          "title": "Tokyoの街歩き",
+          "description": "Tokyoでゆったり午後を楽しむスポット。"
+        },
+        {
+          "id": "0-evening-3",
+          "dayIndex": 0,
+          "timeSlot": "evening",
+          "title": "Tokyoのマーケット",
+          "description": "Tokyoで夜景を楽しむスポット。"
+        }
+      ]
+    },
+    {
+      "date": "2025-10-02",
+      "suggestions": [
+        {
+          "id": "1-morning-1",
+          "dayIndex": 1,
+          "timeSlot": "morning",
+          "title": "Tokyoの朝の散歩",
+          "description": "Tokyoで爽やかな朝を楽しむスポット。"
+        },
+        {
+          "id": "1-afternoon-2",
+          "dayIndex": 1,
+          "timeSlot": "afternoon",
+          "title": "Tokyoの街歩き",
+          "description": "Tokyoでゆったり午後を楽しむスポット。"
+        },
+        {
+          "id": "1-evening-3",
+          "dayIndex": 1,
+          "timeSlot": "evening",
+          "title": "Tokyoのマーケット",
+          "description": "Tokyoで夜景を楽しむスポット。"
+        }
+      ]
+    },
+    {
+      "date": "2025-10-03",
+      "suggestions": [
+        {
+          "id": "2-morning-1",
+          "dayIndex": 2,
+          "timeSlot": "morning",
+          "title": "Tokyoの朝の散歩",
+          "description": "Tokyoで爽やかな朝を楽しむスポット。"
+        },
+        {
+          "id": "2-afternoon-2",
+          "dayIndex": 2,
+          "timeSlot": "afternoon",
+          "title": "Tokyoの街歩き",
+          "description": "Tokyoでゆったり午後を楽しむスポット。"
+        },
+        {
+          "id": "2-evening-3",
+          "dayIndex": 2,
+          "timeSlot": "evening",
+          "title": "Tokyoのマーケット",
+          "description": "Tokyoで夜景を楽しむスポット。"
+        }
+      ]
+    }
+  ]
+}
+

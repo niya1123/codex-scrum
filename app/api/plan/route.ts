@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { deterministicPlanner } from '@/src/planner/adapters/deterministic'
+import { getPlanner } from '@/src/planner/adapter'
 import { inclusiveDaySpanUTC } from '@/src/planner/date'
 
 function json(data: unknown, init?: number | ResponseInit) {
@@ -37,7 +37,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 仮実装: 決定的に簡易旅程生成（3件/日）
-    const planSnake = deterministicPlanner.generate({ destination, start_date, end_date })
+    const planner = getPlanner()
+    const planSnake = planner.generate({ destination, start_date, end_date })
     // Compatibility: return both snake_case (current UI) and camelCase (future contract)
     const planCamel = {
       destination: planSnake.destination,

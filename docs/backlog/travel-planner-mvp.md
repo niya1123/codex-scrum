@@ -76,3 +76,21 @@
 
 ---
 備考: 既存の Playwright スケルトンは `test.skip` で用意済み。`ac.spec.ts` は最初のACとしてGreenを狙います。
+
+## 5) 現行イテレーション状況（red）と直近アクション
+- 概要: 日付入力が自動操作で反映されず送信不可。APIは200(days>0)確認。フォーム制御と検証がイベント依存で自動入力を拾えず、エラーDOM未描画。
+
+- P0: T1（Dev-FE）
+  - 症状: `input[type=date]` が自動入力で値反映されず、送信ボタンが常時 disabled。
+  - 対応: 日付フィールドを文字列(YYYY-MM-DD)の制御入力に統一し、`onInput`/`onChange` 双方で state 更新。送信 disabled 判定を state 由来の `isValid` に一本化。
+
+- P0: T2（Dev-FE）
+  - 症状: 未入力時に blur/submit を発火してもエラーDOMが描画されない。
+  - 対応: 入力ラッパーで `onBlur` を native input へ正しくフォワードし、blur/submit 両方で同期バリデーション実行。エラーDOMを常設領域に描画し `role=alert`/`data-testid` を付与。
+
+- P1: T3（Dev-FE）
+  - 症状: 終了日 < 開始日の UI エラー確認不可（T1により前提操作不可）。
+  - 対応: `start_date <= end_date` の交差検証を追加し、違反時に即時エラー表示・送信不可にする。正常/異常のE2E観点でエラー文言とボタン状態を固定化。
+
+E2E先行:
+- `tests/e2e/ac.spec.ts`（新規; skeleton `test.skip`）で AC-001 を先行監視。T1/T2 完了後に unskip → Green 化を目標。

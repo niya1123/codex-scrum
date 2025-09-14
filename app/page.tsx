@@ -1,5 +1,6 @@
 "use client"
 import { useCallback, useMemo, useState } from 'react'
+import { inclusiveDaySpanUTC } from '@/src/planner/date'
 
 type PlanResponse = {
   destination: string
@@ -24,12 +25,15 @@ export default function HomePage() {
     if (!startDate) e.start_date = '開始日は必須です'
     if (!endDate) e.end_date = '終了日は必須です'
     if (startDate && endDate && startDate > endDate) e.end_date = '終了日は開始日以降にしてください'
-    // 期間>30日
+    // 期間>30日（UTC厳密判定）
     if (startDate && endDate) {
-      const s = new Date(startDate)
-      const eDate = new Date(endDate)
-      const diffDays = Math.floor((eDate.getTime() - s.getTime()) / (1000 * 60 * 60 * 24)) + 1
-      if (diffDays > 30) e.end_date = '期間は30日以内にしてください'
+      try {
+        const diffDays = inclusiveDaySpanUTC(startDate, endDate)
+        if (diffDays > 30) e.end_date = '期間は30日以内にしてください'
+      } catch {
+        // パース不能時は開始日にエラー（BEと整合）
+        e.start_date = '日付形式が不正です'
+      }
     }
     setErrors(e)
     return Object.keys(e).length === 0
@@ -47,7 +51,7 @@ export default function HomePage() {
     setLoading(true)
     setResult(null)
     try {
-      const res = await fetch('/api/plan', {
+      const res = await fetch('/api/itinerary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ destination, start_date: startDate, end_date: endDate })
@@ -71,19 +75,18 @@ export default function HomePage() {
             id="destination"
             name="destination"
             aria-invalid={!!errors.destination}
-            aria-describedby={errors.destination ? 'destination-error' : undefined}
+            aria-describedby="destination-error"
             type="text"
             value={destination}
             onChange={(e) => setDestination(e.target.value)}
+            onInput={(e) => setDestination((e.target as HTMLInputElement).value)}
             onBlur={validate}
             placeholder="例: Tokyo"
             required
           />
-          {errors.destination && (
-            <div id="destination-error" role="alert" className="error">
-              {errors.destination}
-            </div>
-          )}
+          <div id="destination-error" role="alert" aria-live="polite" data-testid="destination-error" className="error">
+            {errors.destination ?? ''}
+          </div>
         </div>
         <div className="field">
           <label htmlFor="start_date">開始日</label>
@@ -91,18 +94,20 @@ export default function HomePage() {
             id="start_date"
             name="start_date"
             aria-invalid={!!errors.start_date}
-            aria-describedby={errors.start_date ? 'start-date-error' : undefined}
-            type="date"
+            aria-describedby="start-date-error"
+            type="text"
+            placeholder="YYYY-MM-DD"
+            inputMode="numeric"
+            pattern="^\\d{4}-\\d{2}-\\d{2}$"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
+            onInput={(e) => setStartDate((e.target as HTMLInputElement).value)}
             onBlur={validate}
             required
           />
-          {errors.start_date && (
-            <div id="start-date-error" role="alert" className="error">
-              {errors.start_date}
-            </div>
-          )}
+          <div id="start-date-error" role="alert" aria-live="polite" data-testid="start-date-error" className="error">
+            {errors.start_date ?? ''}
+          </div>
         </div>
         <div className="field">
           <label htmlFor="end_date">終了日</label>
@@ -110,18 +115,20 @@ export default function HomePage() {
             id="end_date"
             name="end_date"
             aria-invalid={!!errors.end_date}
-            aria-describedby={errors.end_date ? 'end-date-error' : undefined}
-            type="date"
+            aria-describedby="end-date-error"
+            type="text"
+            placeholder="YYYY-MM-DD"
+            inputMode="numeric"
+            pattern="^\\d{4}-\\d{2}-\\d{2}$"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
+            onInput={(e) => setEndDate((e.target as HTMLInputElement).value)}
             onBlur={validate}
             required
           />
-          {errors.end_date && (
-            <div id="end-date-error" role="alert" className="error">
-              {errors.end_date}
-            </div>
-          )}
+          <div id="end-date-error" role="alert" aria-live="polite" data-testid="end-date-error" className="error">
+            {errors.end_date ?? ''}
+          </div>
         </div>
         <button type="submit" disabled={!canSubmit || loading} aria-disabled={!canSubmit || loading}>
           {loading ? '検索中…' : '計画する'}
@@ -149,4 +156,3 @@ export default function HomePage() {
     </div>
   )
 }
-

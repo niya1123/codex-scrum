@@ -1,0 +1,7 @@
+{
+  "error": "VALIDATION_ERROR",
+  "reasons": [
+    { "field": "end_date", "message": "終了日は開始日以降にしてください" }
+  ]
+}
+
