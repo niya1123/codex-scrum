@@ -1,4 +1,5 @@
 #!/usr/bin/env -S node --enable-source-maps
+import "dotenv/config";
 import { exec, spawn } from "node:child_process";
 import { promisify } from "node:util";
 import { existsSync, mkdirSync, writeFileSync, readFileSync, createWriteStream, appendFileSync } from "node:fs";
@@ -77,7 +78,11 @@ async function runCodex({
     let stderrAll = "";
     let lineBuf = "";
     let lines = 0;
+    // Track last activity time across both stdout and stderr to avoid false stalls
     let lastLineAt = Date.now();
+    let lastActivityAt = Date.now();
+    // Track if we killed the process and why, for clearer error messages
+    let killedBy: "stall" | "timeout" | null = null;
 
     // If jsonLogFile provided, open a write stream (ESM互換: require非使用)
     const jsonLogStream = jsonLogFile
@@ -141,29 +146,38 @@ async function runCodex({
         lineBuf = lineBuf.slice(idx + 1);
         if (line.trim().length) lines++;
     lastLineAt = Date.now();
+    lastActivityAt = lastLineAt;
       }
       render();
     });
     child.stderr.on("data", (chunk: Buffer) => {
       const text = chunk.toString("utf8");
       stderrAll += text;
+      lastActivityAt = Date.now();
       // Show stderr immediately (often token streaming or debug)
       process.stderr.write(text);
     });
     // タイマー: 全体タイムアウト
     const timeoutTimer = setTimeout(() => {
-      const msg = `⏰ TIMEOUT ${stageLabel || ''} ${timeoutMs}ms 超過 → 強制終了 (調整: CODEX_TIMEOUT_MS)`;
+      if (killedBy) return; // already handled by stall or other
+      const msg = `⏰ TIMEOUT ${stageLabel || ''} ${timeoutMs}ms 超過 → 終了要請 (調整: CODEX_TIMEOUT_MS)`;
       process.stderr.write("\n" + msg + "\n");
-      try { child.kill('SIGKILL'); } catch {}
+      killedBy = "timeout";
+      try { child.kill('SIGTERM'); } catch {}
+      // Give the process a small grace period to exit cleanly, then force kill
+      setTimeout(() => { try { child.kill('SIGKILL'); } catch {} }, 5000);
     }, timeoutMs);
 
     // スタール監視: 一定時間新規行なし
     const stallTimer = setInterval(() => {
-      const idle = Date.now() - lastLineAt;
-      if (idle >= stallTimeoutMs) {
-        const msg = `⚠️ STALL ${stageLabel || ''} ${Math.round(idle/1000)}s 無出力 (閾値 ${stallTimeoutMs/1000}s) → SIGKILL (調整: CODEX_STALL_TIMEOUT_MS)`;
+      const idle = Date.now() - lastActivityAt;
+      if (idle >= stallTimeoutMs && !killedBy) {
+        const msg = `⚠️ STALL ${stageLabel || ''} ${Math.round(idle/1000)}s 無アクティビティ (閾値 ${Math.round(stallTimeoutMs/1000)}s) → 終了要請 (調整: CODEX_STALL_TIMEOUT_MS)`;
         process.stderr.write("\n" + msg + "\n");
-        try { child.kill('SIGKILL'); } catch {}
+        killedBy = "stall";
+        try { child.kill('SIGTERM'); } catch {}
+        // Force kill if it doesn't exit soon
+        setTimeout(() => { try { child.kill('SIGKILL'); } catch {} }, 5000);
       }
     }, Math.min(30_000, stallTimeoutMs));
 
@@ -198,7 +212,17 @@ async function runCodex({
         process.stderr.write(msg + "\n");
         resolve({ stdout: stdoutAll, stderr: stderrAll, lines, durationMs });
       } else {
-        const err = new Error(`codex exited with code ${code}`);
+        let reasonDetail = "";
+        if (killedBy === "stall") {
+          reasonDetail = `no activity for >= ${Math.round(stallTimeoutMs/1000)}s (stall)`;
+        } else if (killedBy === "timeout") {
+          reasonDetail = `overall timeout ${Math.round(timeoutMs/1000)}s`;
+        } else if (signal) {
+          reasonDetail = `terminated by signal ${signal}`;
+        } else {
+          reasonDetail = `exit code ${code}`;
+        }
+        const err = new Error(`codex terminated: ${reasonDetail} (exitCode=${code}, signal=${signal ?? "none"}). Tune CODEX_STALL_TIMEOUT_MS/CODEX_TIMEOUT_MS as needed.`);
         (err as any).stdout = stdoutAll;
         (err as any).stderr = stderrAll;
         reject(err);
